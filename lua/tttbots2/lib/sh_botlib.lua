@@ -1147,7 +1147,6 @@ end
 ---@realm server
 function TTTBots.Lib.GetNearestNavArea(pos)
     local closestCNavArea = navmesh.GetNearestNavArea(pos)
-    assert(closestCNavArea)
     local closestLadder = TTTBots.Lib.GetClosestLadder(pos)
 
     -- First, check if we are within the boundes of closestCNavArea.
@@ -1177,7 +1176,6 @@ function TTTBots.Lib.GetNearestNavArea(pos)
     if #navmesh.GetAllNavAreas() == 0 then
         error("This map is not supported by TTT Bots, it needs a navigational mesh.")
     end
-    ErrorNoHaltWithStack(pos)
     return nil
 end
 

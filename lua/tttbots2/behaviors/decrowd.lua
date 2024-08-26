@@ -85,10 +85,8 @@ end
 
 function Decrowd.FindRetreatArea(bot)
     local botRegion = TTTBots.Lib.GetNearestRegion(bot:GetPos())
-    if not botRegion then print("Region1 is null") else print(table.ToString(botRegion)) end
     for i = 1, 5 do
         local randomArea = TTTBots.Lib.GetRandomNavInRegion(botRegion)
-        if not randomArea then print("area is null") else print(randomArea) end
         local nWitnesses = Decrowd.GetWitnessesAround(bot, randomArea:GetPos())
 
         if nWitnesses <= 1 then
