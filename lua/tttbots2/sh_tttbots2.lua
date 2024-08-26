@@ -106,6 +106,7 @@ function TTTBots.Reload()
             TTTBots.Behaviors.RunTreeOnBots()
             TTTBots.PlanCoordinator.Tick()
             local bots = TTTBots.Bots
+            assert(bots)
             for i, bot in pairs(bots) do
                 -- TTTBots.DebugServer.RenderDebugFor(bot, { "all" })
                 if not (IsValid(bot) and bot and bot.components) then continue end -- Sometimes a weird bug or edge case occurs, just ignore it

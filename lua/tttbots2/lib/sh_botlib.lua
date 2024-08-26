@@ -154,6 +154,58 @@ function TTTBots.Lib.FindIsolatedTarget(bot)
     return bestTarget, bestIsolation
 end
 
+--- copied from pathmanager, to estimate distance
+local function heuristic_cost_estimate(current, goal)
+    local avoidCost = math.huge
+    local perPlayerPenalty = 200 -- Deprioritize high-trafficked areas
+    -- Manhattan distance
+    local h = math.abs(current:GetCenter().x - goal:GetCenter().x) + math.abs(current:GetCenter().y - goal:GetCenter().y)
+
+    -- Add extra cost for ladders
+    if current:IsLadder() then
+        -- We really don't want bots to go up ladders with people on them.
+        local ladderOccupiedCost = current:GetNPlayersOn() * (perPlayerPenalty * 2)
+
+        return h + ladderOccupiedCost
+    end
+
+    -- Check if current and neighbor are underwater and add extra cost if true
+    if current:IsUnderwater() then
+        h = h + 50
+    end
+
+    -- local nPlayers = current:GetNPlayersInArea()
+    -- h = h + (nPlayers * perPlayerPenalty)
+
+    -- Never go into lava, or what we consider a "lava" area
+    local isLava = current:HasAttributes(NAV_MESH_AVOID)
+    if isLava then
+        h = h + avoidCost -- We MUST avoid this area
+    end
+
+    return h
+end
+
+--- Find the closest valid target for Bot, and return it. This is a pretty expensive function, so don't call it too often.
+---@param bot Bot
+---@return Player?
+---@return number
+---@realm server
+function TTTBots.Lib.FindCloseTarget(bot)
+    local nonAllies = TTTBots.Roles.GetNonAllies(bot)
+    local bestDistance = math.huge
+    local bestTarget = nil
+
+    for _, other in ipairs(nonAllies) do
+        local otherDistance = heuristic_cost_estimate(bot:GetPos(), other:GetPos())
+        if otherDistance < bestDistance then
+            bestDistance = otherDistance
+            bestTarget = other
+        end
+    end
+    return bestTarget, bestDistance
+end
+
 ---Returns a table of living bots, according to the IsPlayerAlive cache.
 ---@return table<Bot>
 ---@realm shared
@@ -1095,6 +1147,7 @@ end
 ---@realm server
 function TTTBots.Lib.GetNearestNavArea(pos)
     local closestCNavArea = navmesh.GetNearestNavArea(pos)
+    assert(closestCNavArea)
     local closestLadder = TTTBots.Lib.GetClosestLadder(pos)
 
     -- First, check if we are within the boundes of closestCNavArea.
@@ -1124,7 +1177,7 @@ function TTTBots.Lib.GetNearestNavArea(pos)
     if #navmesh.GetAllNavAreas() == 0 then
         error("This map is not supported by TTT Bots, it needs a navigational mesh.")
     end
-
+    ErrorNoHaltWithStack(pos)
     return nil
 end
 
